@@ -64,7 +64,7 @@ int readMatrices(Matrix **mat1, Matrix **mat2)
     *mat1 = createMatrix(row1, col1);
     if (!*mat1)
         return -1;
-    
+
     for (int i = 0; i < row1; i++)
     {
         for (int j = 0; j < col1; j++)
@@ -72,7 +72,7 @@ int readMatrices(Matrix **mat1, Matrix **mat2)
             fscanf(file, "%d", &(*mat1)->data[i][j]);
         }
     }
-    
+
     fscanf(file, "%d", &row2);
     fscanf(file, "%d", &col2);
 
@@ -108,8 +108,65 @@ void printMatrix(Matrix *mat)
 }
 
 // Method 1: One thread per element
+typedef struct
+{
+    int row;
+    int col;
+    Matrix *mat1;
+    Matrix *mat2;
+    Matrix *result;
+} ElementArgs;
+
+void *calculateElement(void *arg){
+    ElementArgs *e = (ElementArgs*) arg;
+
+    e->result->data[e->row][e->col] = 0;
+    for (int i = 0; i < e->mat1->cols; i++){
+        e->result->data[e->row][e->col] += e->mat1->data[e->row][i] * e->mat2->data[i][e->col];
+    }
+
+    free(e);    
+    return NULL;
+}
+
 void multiplyMatricesPerElement(Matrix *mat1, Matrix *mat2, Matrix **result)
 {
+    // Check if multiplication is possible
+    if (mat1->cols != mat2->rows){
+        printf("Invalid Multiplication!");
+        return;
+    }
+
+    // Create result matrix
+    *result = createMatrix(mat1->rows, mat2->cols);
+    
+    // Create threads for each element
+    int n = mat1->rows * mat2->cols;
+    pthread_t thread[n];
+
+    // Start threads to calculate each element
+    for (int i = 0; i < mat1->rows; i++)
+    {
+        for (int j = 0; j < mat2->cols; j++)
+        {
+            // Create argument struct for each element calculation
+            ElementArgs *e = malloc(sizeof(ElementArgs));
+            e->row = i;
+            e->col = j;
+            e->mat1 = mat1;
+            e->mat2 = mat2;
+            e->result = *result;
+            pthread_create(thread[i * mat2->cols + j], NULL, calculateElement, e);
+        }
+    }
+
+    // Wait for all threads to finish
+    for (int i = 0; i < n; i++)
+    {
+        pthread_join(thread[i], NULL);
+    }
+    
+    return;
 }
 
 // Method 2: One thread per row
