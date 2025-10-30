@@ -246,12 +246,29 @@ int main()
     }
 
     // Method 1: Per element
+    struct timeval start, end;
+    // Get start time
+    gettimeofday(&start, NULL);
+    // Multiply matrices using per element threading
     multiplyMatricesPerElement(mat1, mat2, &result1);
+    // Get end time
+    gettimeofday(&end, NULL);
+    // Calculate elapsed time in microseconds
+    double micros = (end.tv_sec - start.tv_sec) * 1000000 + (end.tv_usec - start.tv_usec);
     printMatrix(result1);
+    printf("END1 %.2f us\n", micros);
 
     // Method 2: Per row
+    // Get start time
+    gettimeofday(&start, NULL);
+    // Multiply matrices using per row threading
     multiplyMatricesPerRow(mat1, mat2, &result2);
+    // Get end time
+    gettimeofday(&end, NULL);
+    // Calculate elapsed time in microseconds
+    micros = (end.tv_sec - start.tv_sec) * 1000000 + (end.tv_usec - start.tv_usec);
     printMatrix(result2);
+    printf("END2 %.2f us\n", micros);
 
     // Cleanup
     freeMatrix(mat1);
