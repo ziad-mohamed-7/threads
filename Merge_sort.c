@@ -51,7 +51,7 @@ void merge(int arr[], int left, int mid, int right)
 
 void *threaded_merge_sort(void *arg)
 {
-    ThreadArgs *t_args = (ThreadArgs *)arg;
+    ThreadArgs *t_args = (ThreadArgs*)arg;
 
     // Base case: one element or empty list
     if (t_args->left >= t_args->right)
