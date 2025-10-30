@@ -80,8 +80,8 @@ void *threaded_merge_sort(void *arg)
 
     // Creating two threads for recurrsively dividing each half
     pthread_t thread_left, thread_right;
-    pthread_create(&thread_left, NULL, threaded_merge_sort, &t_left_args);
-    pthread_create(&thread_right, NULL, threaded_merge_sort, &t_right_args);
+    pthread_create(&thread_left, NULL, threaded_merge_sort, t_left_args);
+    pthread_create(&thread_right, NULL, threaded_merge_sort, t_right_args);
 
     // Parent thread waiting for both threads to finish
     pthread_join(thread_left, NULL);
@@ -112,8 +112,18 @@ int main()
     }
     fclose(file);
 
-    // Make the required changes inorder to be able to call the Thread fn
-    /*You code*/
+    // Creating main thread to start sorting process
+    ThreadArgs *main_args = malloc(sizeof(ThreadArgs));
+    main_args->arr = arr;
+    main_args->left = 0;
+    main_args->right = n - 1;
+    
+    // Initializing and starting main thread
+    pthread_t main_thread;
+    pthread_create(&main_thread, NULL, threaded_merge_sort, main_args);
+    
+    // Waiting for main thread to finish
+    pthread_join(main_thread, NULL);
 
     printf("Sorted array:\n");
     for (int i = 0; i < n; i++)
