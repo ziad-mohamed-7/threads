@@ -2,17 +2,19 @@
 #include <stdlib.h>
 #include <pthread.h>
 
-#define MAX 10000 
+#define MAX 10000
 
 // Struct for thread arguments
-typedef struct {
+typedef struct
+{
     int left;
     int right;
     int *arr;
 } ThreadArgs;
 
 // Merge function (same as your original)
-void merge(int arr[], int left, int mid, int right) {
+void merge(int arr[], int left, int mid, int right)
+{
     int i, j, k;
     int n1 = mid - left + 1;
     int n2 = right - mid;
@@ -29,7 +31,8 @@ void merge(int arr[], int left, int mid, int right) {
     j = 0;
     k = left;
 
-    while (i < n1 && j < n2) {
+    while (i < n1 && j < n2)
+    {
         if (L[i] <= R[j])
             arr[k++] = L[i++];
         else
@@ -46,15 +49,56 @@ void merge(int arr[], int left, int mid, int right) {
     free(R);
 }
 
-void* threaded_merge_sort(void* arg) {
+void *threaded_merge_sort(void *arg)
+{
+    ThreadArgs *t_args = (ThreadArgs *)arg;
 
-    // you have to Implement the full function to be using the merge function
-    // and to call it in the main
+    // Base case: one element or empty list
+    if (t_args->left >= t_args->right)
+    {
+        free(t_args); // Freeing allocated space
+        return NULL;
+    }
+
+    // Recursive case:
+    // Calculating mid for splitting
+    int mid = (t_args->left + t_args->right) / 2;
+
+    // Allcoating space for arguments of the two halves of the array
+    ThreadArgs *t_left_args = malloc(sizeof(ThreadArgs));
+    ThreadArgs *t_right_args = malloc(sizeof(ThreadArgs));
+
+    // Initailizing the arguments of the left half
+    t_left_args->arr = t_args->arr;
+    t_left_args->left = t_args->left;
+    t_left_args->right = mid;
+
+    // Initializing the arguments of the right half
+    t_right_args->arr = t_args->arr;
+    t_right_args->left = mid + 1;
+    t_right_args->right = t_args->right;
+
+    // Creating two threads for recurrsively dividing each half
+    pthread_t thread_left, thread_right;
+    pthread_create(&thread_left, NULL, threaded_merge_sort, &t_left_args);
+    pthread_create(&thread_right, NULL, threaded_merge_sort, &t_right_args);
+
+    // Parent thread waiting for both threads to finish
+    pthread_join(thread_left, NULL);
+    pthread_join(thread_right, NULL);
+
+    // Merging the two sorted halves
+    merge(t_args->arr, t_args->left, mid, t_args->right);
+
+    free(t_args); // Freeing allocated space
+    return NULL;
 }
 
-int main() {
-    FILE* file = fopen("input", "r");
-    if (!file) {
+int main()
+{
+    FILE *file = fopen("input", "r");
+    if (!file)
+    {
         printf("Error opening file.\n");
         return 1;
     }
@@ -62,8 +106,9 @@ int main() {
     int n;
     fscanf(file, "%d", &n);
     int arr[MAX];
-    for (int i = 0; i < n; i++) {
-        fscanf(file, "%d", &arr[i]); 
+    for (int i = 0; i < n; i++)
+    {
+        fscanf(file, "%d", &arr[i]);
     }
     fclose(file);
 
@@ -71,7 +116,8 @@ int main() {
     /*You code*/
 
     printf("Sorted array:\n");
-    for (int i = 0; i < n; i++) {
+    for (int i = 0; i < n; i++)
+    {
         printf("%d ", arr[i]);
     }
     printf("\n");
