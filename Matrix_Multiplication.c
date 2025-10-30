@@ -117,32 +117,35 @@ typedef struct
     Matrix *result;
 } ElementArgs;
 
-void *calculateElement(void *arg){
-    ElementArgs *e = (ElementArgs*) arg;
+void *calculateElement(void *arg)
+{
+    ElementArgs *e = (ElementArgs *)arg;
 
     e->result->data[e->row][e->col] = 0;
-    for (int i = 0; i < e->mat1->cols; i++){
+    for (int i = 0; i < e->mat1->cols; i++)
+    {
         e->result->data[e->row][e->col] += e->mat1->data[e->row][i] * e->mat2->data[i][e->col];
     }
 
-    free(e);    
+    free(e);
     return NULL;
 }
 
 void multiplyMatricesPerElement(Matrix *mat1, Matrix *mat2, Matrix **result)
 {
     // Check if multiplication is possible
-    if (mat1->cols != mat2->rows){
+    if (mat1->cols != mat2->rows)
+    {
         printf("Invalid Multiplication!");
         return;
     }
 
     // Create result matrix
     *result = createMatrix(mat1->rows, mat2->cols);
-    
+
     // Create threads for each element
     int n = mat1->rows * mat2->cols;
-    pthread_t thread[n];
+    pthread_t threads[n];
 
     // Start threads to calculate each element
     for (int i = 0; i < mat1->rows; i++)
@@ -156,22 +159,78 @@ void multiplyMatricesPerElement(Matrix *mat1, Matrix *mat2, Matrix **result)
             e->mat1 = mat1;
             e->mat2 = mat2;
             e->result = *result;
-            pthread_create(thread[i * mat2->cols + j], NULL, calculateElement, e);
+            pthread_create(&threads[i * mat2->cols + j], NULL, calculateElement, e);
         }
     }
 
     // Wait for all threads to finish
     for (int i = 0; i < n; i++)
     {
-        pthread_join(thread[i], NULL);
+        pthread_join(threads[i], NULL);
     }
-    
+
     return;
 }
 
 // Method 2: One thread per row
+typedef struct
+{
+    int row;
+    Matrix *mat1;
+    Matrix *mat2;
+    Matrix *result;
+} RowArgs;
+
+void *calculateRow(void *arg)
+{
+    RowArgs *r = (RowArgs *)arg;
+    for (int k = 0; k < r->mat2->cols; k++)
+    {
+        r->result->data[r->row][k] = 0;
+        for (int i = 0; i < r->mat1->cols; i++)
+        {
+            r->result->data[r->row][k] += r->mat1->data[r->row][i] * r->mat2->data[i][k];
+        }
+    }
+
+    free(r);
+    return NULL;
+}
+
 void multiplyMatricesPerRow(Matrix *mat1, Matrix *mat2, Matrix **result)
 {
+    // Check if multiplication is possible
+    if (mat1->cols != mat2->rows)
+    {
+        printf("Invalid Multiplication!");
+        return;
+    }
+
+    // Create result matrix
+    *result = createMatrix(mat1->rows, mat2->cols);
+
+    // Create threads for each row
+    int n = mat1->rows;
+    pthread_t threads[n];
+
+    // Start threads to calculate each row
+    for (int i = 0; i < n; i++)
+    {
+        RowArgs *r = malloc(sizeof(RowArgs));
+        r->row = i;
+        r->mat1 = mat1;
+        r->mat2 = mat2;
+        r->result = *result;
+        pthread_create(&threads[i], NULL, calculateRow, r);
+    }
+
+    // Wait for all threads to finish
+    for (int i = 0; i < n; i++)
+    {
+        pthread_join(threads[i], NULL);
+    }
+
+    return;
 }
 
 int main()
