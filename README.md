@@ -1,4 +1,3 @@
-[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/oVlx2L-m)
 # Operating Systems Lab: Pthreads
 
 This project explores multi-threading concepts using the POSIX threads (Pthreads) library. It implements two popular algorithms, Merge Sort and Matrix Multiplication. In Matrix Multiplication, it's using different threading strategies: Per-Element & Per-Row threading, and comparing their  performance.
